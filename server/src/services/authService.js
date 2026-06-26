@@ -1,18 +1,44 @@
 const pool = require("../config/db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
+const axios = require("axios");
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// 📧 Mail Transporter Configuration
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+// 📧 Brevo Email Helper
+const sendMail = async ({ to, subject, text, htmlContent }) => {
+  try {
+    const response = await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        sender: {
+          name: "MediCare",
+          email: process.env.BREVO_SENDER_EMAIL,
+        },
+        to: [{ email: to }],
+        subject,
+        textContent: text,
+        htmlContent,
+      },
+      {
+        timeout: 10000,
+        headers: {
+          "api-key": process.env.BREVO_API_KEY,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("Brevo Message ID:", response.data.messageId);
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Brevo Email Error:",
+      error.response?.data || error.message
+    );
+    throw new Error("Failed to send email");
+  }
+};
 
 // 🔑 Helper: Generate random 8-character password
 const generatePassword = () => {
@@ -21,8 +47,7 @@ const generatePassword = () => {
 
 // 📧 Helper: Send welcome email with credentials
 const sendCredentials = async (email, username, password) => {
-  await transporter.sendMail({
-    from: process.env.EMAIL,
+  await sendMail({
     to: email,
     subject: "Welcome to Medicare Hospital – Your Account Credentials",
     text: `Dear Staff Member,
@@ -257,8 +282,7 @@ const forgotPassword = async (identifier) => {
     [otp, otpExpiry, user.user_id]
   );
 
-  await transporter.sendMail({
-    from: process.env.EMAIL,
+  await sendMail({
     to: user.email,
     subject: "Medicare Hospital Password Reset OTP",
     text: `Dear User,
