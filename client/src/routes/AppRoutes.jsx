@@ -21,7 +21,7 @@ import RecepBilling from "../pages/reception/Billing";
 import DoctorDashboard from "../pages/doctor/DoctorDashboard";
 import DoctorAllPatients from "../pages/doctor/DoctorAllPatients";
 import Revenue from "../pages/admin/revenue/Revenue";
-import Staff from "../pages/admin/staff/Staff"
+import Staff from "../pages/admin/staff/Staff";
 
 export default function AppRoutes() {
   return (
