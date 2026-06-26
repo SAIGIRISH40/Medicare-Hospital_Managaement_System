@@ -1,6 +1,6 @@
 import postgres from 'postgres'
 
 const connectionString = process.env.DATABASE_URL
-const sql = postgres(connectionString)
+const pool = postgres(connectionString)
 
-export default sql
+export default pool;
